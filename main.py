@@ -23,3 +23,22 @@ parser.parse()
 args = parser.args()
 if len(args):
 	print(args)
+
+'''
+# Output
+- ```python main.py```
+
+This is a simple demo app
+
+> 1.0.0
+> dev<dev@gmail.com>
+> Usage: main.py [OPTIONS]
+>
+> Options:
+>   -m, --message <MESSAGE>  The message to be displayed.
+>   -c, --count <COUNT>  Number of times the message needed to be displayed
+
+- ```python main.py -m 'World!' --count 98```
+
+> [['message', 'World!'], ['count', 98]]
+'''
