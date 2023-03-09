@@ -24,8 +24,7 @@ class App(Parser):
 
 
 App.parse()
-if(len(App.args()) == 0):
-	App.help()
+if App.n_args() == 0 or App.has_help() : App.help()
 else:
 	if(App.message.value):
 		for i in range(App.count.value):
