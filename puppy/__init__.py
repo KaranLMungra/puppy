@@ -26,28 +26,33 @@ class Parser:
 		n = -1
 		for arg in args:
 			if n != -1:
-				self.arguments[n][5] = arg
+				self.arguments[n]['value'] = arg
 				n = -1
-				continue
 			for i, argument in enumerate(self.arguments):
-				if arg == argument[2] or arg == argument[3]:
+				if arg == argument['short_name'] or arg == argument['long_name']:
 					n = i
 
 	def args(self):
 		args = []
 		for arg in self.arguments:
-			if(arg[5]):
-				x = arg[5]
-				if(arg[4] == type(1)):
-					x = int(arg[5])
-				args.append([arg[3][2:], x])
+			if(arg['value']):
+				x = arg['value']
+				if(arg['types'] == type(1)):
+					x = int(arg['value'])
+				args.append([arg['long_name'][2:], x])
 		return args
 
 
 	def add_argument(self, callback, about, short_name, long_name):
-		for x in callback.__annotations__.keys():
-			types = callback.__annotations__[x]
-		self.arguments.append([callback, about, short_name, long_name, types, ''])
+		argument = {
+			'callback': callback,
+			'about': about,
+			'short_name': short_name,
+			'long_name': long_name,
+			'types': callback.__annotations__['return'],
+			'value': None
+		}
+		self.arguments.append(argument)
 
 	def help(self):
 		if self.about: print(self.about, end='\n\n')
@@ -56,9 +61,9 @@ class Parser:
 		print(self.usage, end='\n\n')
 		print('Options:')
 		for arg in self.arguments:
-			about = arg[1]
-			short_name = arg[2]
-			long_name = arg[3]
+			about = arg['about']
+			short_name = arg['short_name']
+			long_name = arg['long_name']
 			hstr = '  '
 			if short_name:
 				hstr += short_name
@@ -71,14 +76,16 @@ class Parser:
 			print(hstr)
 
 def Args(p, author = '', version = ''):
-	p.author = author
-	p.version = version
 	def decorate(c):
+		p.author = author
+		p.version = version
 		p.about = c.__doc__
 		attributes = getMethods(c)
+		
 		for attr in attributes:
 			name = attr[0]
 			call = attr[1]
+			short_name, long_name = '', ''
 			if call.short_name: short_name = f'-{name[0].lower()}'
 			if call.long_name: long_name = f'--{name.lower()}'
 			p.add_argument(call, call.__doc__, short_name, long_name)
