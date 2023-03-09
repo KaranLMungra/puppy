@@ -8,14 +8,20 @@ class App:
 
 	@Attr(short_name=True)
 	@classmethod
-	def message(msg: str):
+	def message() -> str:
 		'''The message to be displayed.'''
 		pass
 
 	@Attr(short_name=True)
 	@classmethod
-	def count(c: int):
+	def count() -> int:
 		'''Number of times the message needed to be displayed'''
+		pass
+
+	@Attr()
+	@classmethod
+	def sep() -> str:
+		'''The separator between each message displayed'''
 		pass
 
 
