@@ -1,9 +1,7 @@
 from puppy import Parser, Args, Attr
 
-parser = Parser()
-
-@Args(parser, author='dev<dev@gmail.com>', version='1.0.0')
-class App:
+@Args(author='dev<dev@gmail.com>', version='1.0.0')
+class App(Parser):
 	'''This is a simple demo app'''
 
 	@Attr(short_name=True)
@@ -12,39 +10,23 @@ class App:
 		'''The message to be displayed.'''
 		pass
 
-	@Attr(short_name=True)
+	@Attr(short_name=True, default_value=1)
 	@classmethod
 	def count() -> int:
 		'''Number of times the message needed to be displayed'''
 		pass
 
-	@Attr()
+	@Attr(default_value='\n')
 	@classmethod
 	def sep() -> str:
 		'''The separator between each message displayed'''
 		pass
 
 
-parser.parse()
-args = parser.args()
-if len(args):
-	print(args)
-
-'''
-# Output
-- ```python main.py```
-
-This is a simple demo app
-
-> 1.0.0
-> dev<dev@gmail.com>
-> Usage: main.py [OPTIONS]
->
-> Options:
->   -m, --message <MESSAGE>  The message to be displayed.
->   -c, --count <COUNT>  Number of times the message needed to be displayed
-
-- ```python main.py -m 'World!' --count 98```
-
-> [['message', 'World!'], ['count', 98]]
-'''
+App.parse()
+if(len(App.args()) == 0):
+	App.help()
+else:
+	if(App.message.value):
+		for i in range(App.count.value):
+			print(App.message.value, end=App.sep.value)

@@ -8,59 +8,60 @@ def getMethods(MyClass):
 				attributes.append((attribute, value))
 	return attributes
 
+def into_type(x, t):
+	if t == int:
+		return int(x)
+	return x
+
 class Parser:
-	def __init__(self):
-		self.author: str
-		self.version:str		
-		self.about:str
-		self.usage = f'Usage: {sys.argv[0]} [OPTIONS]' 
-		self.arguments = []
+	author = ''
+	version = ''
+	about = ''
+	usage = f'Usage: {sys.argv[0]} [OPTIONS]'
+	arguments = []
 
-
-	def parse(self):
-		args = sys.argv[1:]
-		if(len(args) == 0):
-			self.help()
-			# print(self.usage, end='\n\n')
-			# print('Try passing option -h or  --help for more help.')
+	@staticmethod
+	def parse():
+		args = sys.argv[1:]			
 		n = -1
 		for arg in args:
 			if n != -1:
-				self.arguments[n]['value'] = arg
+				arg = into_type(arg, Parser.arguments[n]['dtype'])
+				Parser.arguments[n]['value'] = arg
+				Parser.arguments[n]['callback'].__func__.value = arg
 				n = -1
-			for i, argument in enumerate(self.arguments):
+			for i, argument in enumerate(Parser.arguments):
 				if arg == argument['short_name'] or arg == argument['long_name']:
 					n = i
-
-	def args(self):
+	@staticmethod
+	def args():
 		args = []
-		for arg in self.arguments:
+		for arg in Parser.arguments:
 			if(arg['value']):
 				x = arg['value']
-				if(arg['types'] == type(1)):
-					x = int(arg['value'])
 				args.append([arg['long_name'][2:], x])
 		return args
 
-
-	def add_argument(self, callback, about, short_name, long_name):
+	@staticmethod
+	def add_argument(callback, about, short_name, long_name):
 		argument = {
 			'callback': callback,
 			'about': about,
 			'short_name': short_name,
 			'long_name': long_name,
-			'types': callback.__annotations__['return'],
+			'dtype': callback.__annotations__['return'],
 			'value': None
 		}
-		self.arguments.append(argument)
+		Parser.arguments.append(argument)
 
-	def help(self):
-		if self.about: print(self.about, end='\n\n')
-		if self.version: print(self.version)
-		if self.author: print(self.author)
-		print(self.usage, end='\n\n')
+	@staticmethod
+	def help():
+		if Parser.about: print(Parser.about, end='\n\n')
+		if Parser.version: print(Parser.version)
+		if Parser.author: print(Parser.author)
+		print(Parser.usage, end='\n\n')
 		print('Options:')
-		for arg in self.arguments:
+		for arg in Parser.arguments:
 			about = arg['about']
 			short_name = arg['short_name']
 			long_name = arg['long_name']
@@ -75,27 +76,27 @@ class Parser:
 				hstr += f'  {about}'
 			print(hstr)
 
-def Args(p, author = '', version = ''):
+def Args(author = '', version = ''):
 	def decorate(c):
-		p.author = author
-		p.version = version
-		p.about = c.__doc__
+		Parser.author = author
+		Parser.version = version
+		Parser.about = c.__doc__
 		attributes = getMethods(c)
-		
 		for attr in attributes:
 			name = attr[0]
 			call = attr[1]
 			short_name, long_name = '', ''
 			if call.short_name: short_name = f'-{name[0].lower()}'
 			if call.long_name: long_name = f'--{name.lower()}'
-			p.add_argument(call, call.__doc__, short_name, long_name)
+			c.add_argument(call, call.__doc__, short_name, long_name)
 		return c
 	return decorate
 
-def Attr(short_name=False, long_name=True):
+def Attr(short_name=False, long_name=True, default_value=None):
 	def decorate(fn):
 		func = fn.__func__ 
 		func.short_name=short_name
 		func.long_name=long_name
+		func.value = default_value
 		return fn
 	return decorate 
