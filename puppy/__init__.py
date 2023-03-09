@@ -19,7 +19,7 @@ class Parser:
 	about = ''
 	usage = f'Usage: {sys.argv[0]} [OPTIONS]'
 	arguments = []
-
+	__help = False
 	@staticmethod
 	def parse():
 		args = sys.argv[1:]			
@@ -31,16 +31,19 @@ class Parser:
 				Parser.arguments[n]['callback'].__func__.value = arg
 				n = -1
 			for i, argument in enumerate(Parser.arguments):
+				if arg == '-h' or arg == '--help':
+					Parser.arguments[i]['value'] = True
+					Parser.__help = True
+					continue
 				if arg == argument['short_name'] or arg == argument['long_name']:
 					n = i
 	@staticmethod
-	def args():
-		args = []
-		for arg in Parser.arguments:
-			if(arg['value']):
-				x = arg['value']
-				args.append([arg['long_name'][2:], x])
-		return args
+	def has_help():
+		return Parser.__help
+	
+	@staticmethod
+	def n_args():
+		return len([arg for arg in Parser.arguments if arg['value']])
 
 	@staticmethod
 	def add_argument(callback, about, short_name, long_name):
@@ -55,7 +58,7 @@ class Parser:
 		Parser.arguments.append(argument)
 
 	@staticmethod
-	def help():
+	def help() -> None:
 		if Parser.about: print(Parser.about, end='\n\n')
 		if Parser.version: print(Parser.version)
 		if Parser.author: print(Parser.author)
@@ -89,6 +92,7 @@ def Args(author = '', version = ''):
 			if call.short_name: short_name = f'-{name[0].lower()}'
 			if call.long_name: long_name = f'--{name.lower()}'
 			c.add_argument(call, call.__doc__, short_name, long_name)
+		c.add_argument(Parser.help, 'Prints Help', '-h', '--help')
 		return c
 	return decorate
 
